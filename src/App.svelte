@@ -1,12 +1,13 @@
 <script lang="ts">
   import Box from './components/Box.svelte';
   import gameStore from './game-store';
+  import { nextMove, newGame } from './request';
 
   let numberOfPlayers = 0;
   let board = Array(9).fill('');
   let nextPlayer = '';
   let winner;
-  // let player: string;
+  let errorMessage: string;
 
   gameStore.subscribe((state) => {
     if (!state) {
@@ -18,7 +19,14 @@
     board = state.board;
     numberOfPlayers = state.numberOfPeeps;
   });
-  // console.log(board);
+
+  async function playBox(index: number) {
+    if (winner || !gameStore.isConnected) {
+      return;
+    }
+
+    errorMessage = await nextMove(index);
+  }
 </script>
 
 <main>
@@ -32,10 +40,14 @@
     <h3>Player {nextPlayer}</h3>
   {/if}
   <div class="board">
-    {#each board as box}
-      <Box play={box} />
+    {#each board as box, index}
+      <Box {winner} play={box} on:click={() => playBox(index)} />
     {/each}
   </div>
+  {#if winner}<button on:click={newGame}>new game</button>{/if}
+  {#if errorMessage}
+    <p class="error-message">{errorMessage}</p>
+  {/if}
 </main>
 
 <style>
@@ -60,6 +72,19 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(100px, 1fr));
     align-content: center;
+  }
+  .error-message {
+    color: red;
+    font-size: 1.3rem;
+  }
+
+  button {
+    padding: 1.5rem;
+    background-color: purple;
+    color: #fff;
+    text-transform: uppercase;
+    margin: 2rem 0;
+    letter-spacing: 0.3rem;
   }
 
   @media (min-width: 640px) {
