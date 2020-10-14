@@ -1,18 +1,39 @@
 <script lang="ts">
   import Box from './components/Box.svelte';
+  import gameStore from './game-store';
 
-  let numberOfPlayers = 1;
-  let board = Array(9).fill(null);
-  let player: string;
+  let numberOfPlayers = 0;
+  let board = Array(9).fill('');
+  let nextPlayer = '';
+  let winner;
+  // let player: string;
+
+  gameStore.subscribe((state) => {
+    if (!state) {
+      return;
+    }
+
+    winner = state.winner;
+    nextPlayer = state.nextPlayer;
+    board = state.board;
+    numberOfPlayers = state.numberOfPeeps;
+  });
+  // console.log(board);
 </script>
 
 <main>
   <h1>Tic Tac Toe</h1>
   <h2>number of people playing {numberOfPlayers}</h2>
-  <h3>Player {(player = 'X')}</h3>
+  {#if winner === 'TIE'}
+    <h3>Tie Game !!!</h3>
+  {:else if winner}
+    <h3>Player {winner} won !!!</h3>
+  {:else}
+    <h3>Player {nextPlayer}</h3>
+  {/if}
   <div class="board">
-    {#each board as box, index}
-      <Box play={index} />
+    {#each board as box}
+      <Box play={box} />
     {/each}
   </div>
 </main>
